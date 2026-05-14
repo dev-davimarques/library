@@ -97,6 +97,7 @@ Módulo para cadastro e gerenciamento dos autores.
 
 ### 4️⃣ Estrutura do Banco de Dados (H2 Console)
 Visualização das tabelas (`BOOK`, `AUTHOR`, `PUBLISHER`) geradas automaticamente pelo Hibernate a partir das Entidades JPA.
+
 ![Tabelas Banco de Dados](Tabelas-BancoDeDados.png)
 
 ---
