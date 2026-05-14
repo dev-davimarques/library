@@ -78,3 +78,25 @@ Ordenação Parametrizada: Listagens organizadas de forma crescente por ID para 
 5. Acesso: Abra o navegador e acesse: http://localhost:8080/books
 
 6. Banco de Dados (Console H2): Caso queira visualizar as tabelas, acesse http://localhost:8080/h2-console.
+
+---
+
+## 📸 Demonstração do Sistema (Telas)
+
+### 1️⃣ Tela Dashboard (Gestão de Livros)
+Módulo para cadastro e gerencimanto de livros.
+![Tela Dashboard](Tela-Dashboard.png)
+
+### 2️⃣ Tela de Editoras
+Módulo para cadastro e gerenciamento das editoras.
+![Tela Editoras](Tela-Editoras.png)
+
+### 3️⃣ Tela de Autores
+Módulo para cadastro e gerenciamento dos autores.
+![Tela Autores](Tela-Autores.png)
+
+### 4️⃣ Estrutura do Banco de Dados (H2 Console)
+Visualização das tabelas (`BOOK`, `AUTHOR`, `PUBLISHER`) geradas automaticamente pelo Hibernate a partir das Entidades JPA.
+![Tabelas Banco de Dados](Tabelas-BancoDeDados.png)
+
+---
