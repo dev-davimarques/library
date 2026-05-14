@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Livros</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="#">Minha Biblioteca Virtual</a>
+        <div class="navbar-nav">
+            <a class="nav-link active" href="/books">Dashboard</a>
+            <a class="nav-link" href="/publishers">Editoras</a>
+            <a class="nav-link" href="/authors">Autores</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white fw-bold"
+                     th:text="${bookDto.id != null} ? 'Editar Livro' : 'Cadastrar Novo Livro'">
+                    Cadastrar Novo Livro
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/books}" th:object="${bookDto}" method="post">
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Título</label>
+                            <input type="text" class="form-control" th:field="*{title}"
+                                   th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'"
+                                   placeholder="Ex: O Senhor dos Anéis">
+                            <div class="invalid-feedback" th:errors="*{title}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">ISBN (13 dígitos)</label>
+                            <input type="text" id="isbnInput" class="form-control" th:field="*{isbn}"
+                                   th:classappend="${#fields.hasErrors('isbn')} ? 'is-invalid'"
+                                   placeholder="000-00-000-0000-0">
+                            <div class="invalid-feedback" th:errors="*{isbn}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Editora</label>
+                            <select class="form-select" th:field="*{publisherId}"
+                                    th:classappend="${#fields.hasErrors('publisherId')} ? 'is-invalid'">
+                                <option value="">-- Selecione --</option>
+                                <option th:each="pub : ${allPublishers}" th:value="${pub.id}" th:text="${pub.name}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{publisherId}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Autores</label>
+                            <select multiple class="form-select" style="height: 120px;" th:field="*{authorIds}"
+                                    th:classappend="${#fields.hasErrors('authorIds')} ? 'is-invalid'">
+                                <option th:each="auth : ${allAuthors}" th:value="${auth.id}" th:text="${auth.name}"></option>
+                            </select>
+                            <small class="text-muted"><i class="bi bi-info-circle"></i> Segure CTRL para múltiplos</small>
+                            <div class="invalid-feedback" th:errors="*{authorIds}"></div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-dark">Salvar Livro</button>
+                            <a th:if="${bookDto.id != null}" href="/books" class="btn btn-outline-secondary">Cancelar Edição</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-body bg-white">
+                    <form id="filterForm" th:action="@{/books}" method="get" class="row g-3 align-items-center">
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                                <input type="text" id="searchInput" name="title" class="form-control border-start-0"
+                                       placeholder="Buscar por título..." th:value="${param.title}">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="publisherId" class="form-select" onchange="document.getElementById('filterForm').submit()">
+                                <option value="">Todas as Editoras</option>
+                                <option th:each="pub : ${allPublishers}" th:value="${pub.id}" th:text="${pub.name}"
+                                        th:selected="${param.publisherId != null and param.publisherId.toString() == pub.id.toString()}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="authorId" class="form-select" onchange="document.getElementById('filterForm').submit()">
+                                <option value="">Todos os Autores</option>
+                                <option th:each="auth : ${allAuthors}" th:value="${auth.id}" th:text="${auth.name}"
+                                        th:selected="${param.authorId != null and param.authorId.toString() == auth.id.toString()}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-dark flex-grow-1">Filtrar</button>
+                            <a href="/books" class="btn btn-outline-secondary flex-grow-1">Limpar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">ISBN</th>
+                            <th>Título</th>
+                            <th>Editora</th>
+                            <th>Autores</th>
+                            <th class="text-end pe-4">Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody id="booksTableBody">
+                        <tr th:each="b : ${books}">
+                            <td class="ps-4 font-monospace text-muted" th:text="${b.isbn}"></td>
+                            <td class="fw-bold text-dark" th:text="${b.title}"></td>
+                            <td><span class="badge rounded-pill bg-secondary" th:text="${b.publisherName}"></span></td>
+                            <td>
+                                <span th:each="authorName : ${b.authorNames}" class="badge bg-light text-dark border me-1" th:text="${authorName}"></span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a th:href="@{/books/edit/{id}(id=${b.id})}" class="btn btn-sm btn-outline-primary border-0" title="Editar">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a th:href="@{/books/delete/{id}(id=${b.id})}" class="btn btn-sm btn-outline-danger border-0" title="Excluir"
+                                   onclick="return confirm('Tem certeza que deseja excluir este livro?');">
+                                    <i class="bi bi-trash3"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(books)}">
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                Nenhum livro encontrado para os filtros selecionados.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- Lógica de Busca em Tempo Real ---
+        const searchInput = document.getElementById('searchInput');
+        const filterForm = document.getElementById('filterForm');
+        let typingTimer;
+        const doneTypingInterval = 400;
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(function() {
+                const url = new URL(filterForm.action, window.location.origin);
+                const formData = new FormData(filterForm);
+                const params = new URLSearchParams(formData);
+                url.search = params.toString();
+
+                fetch(url)
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newTbody = doc.getElementById('booksTableBody');
+                        if (newTbody) {
+                            document.getElementById('booksTableBody').innerHTML = newTbody.innerHTML;
+                        }
+                    });
+            }, doneTypingInterval);
+        });
+
+        // --- Lógica de Máscara de ISBN (000-00-000-0000-0) ---
+        const isbnInput = document.getElementById('isbnInput');
+
+        isbnInput.addEventListener('input', function(e) {
+            let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,2})(\d{0,3})(\d{0,4})(\d{0,1})/);
+
+            // Monta a string com hífens apenas se o grupo capturado existir
+            e.target.value = !x[2] ? x[1]
+                : x[1] + '-' + x[2] + (x[3] ? '-' + x[3] : '')
+                + (x[4] ? '-' + x[4] : '')
+                + (x[5] ? '-' + x[5] : '');
+        });
+    });
+</script>
+</body>
+</html>
